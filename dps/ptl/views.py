@@ -355,7 +355,7 @@ class WarehouseListView(ListView):
     model = Warehouse
     template_name = 'ptl/warehouse_list.html'
     context_object_name = 'warehouses'
-    extra_context = {"menu_title": "仓库管理"}
+    extra_context = {"menu_title": "仓库的管理"}
 
 
 class WarehouseCreateView(CreateView):
