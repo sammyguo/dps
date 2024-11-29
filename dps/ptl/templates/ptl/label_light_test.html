@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+    <form class="form-group form-inline">
+        {% csrf_token %}
+
+        <div class="input-group">
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="cmd" id="NET_CMD_LABLE_INFO_GET"
+                           value="NET_CMD_LABLE_INFO_GET">
+                    <label class="form-check-label" for="NET_CMD_LABLE_INFO_GET">
+                        读标签信息
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="cmd" id="NET_CMD_LABLE_LIGHT_SET"
+                           value="NET_CMD_LABLE_LIGHT_SET">
+                    <label class="form-check-label" for="NET_CMD_LABLE_LIGHT_SET">
+                        控制灯亮灭
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="cmd" id="NET_CMD_LABLE_RST"
+                           value="NET_CMD_LABLE_RST">
+                    <label class="form-check-label" for="NET_CMD_LABLE_RST">
+                        重启标签
+                    </label>
+                </div>
+            </div>
+
+
+            <select class="form-select" id="inputGroupSelect02" name="color">
+                <option selected value="GUI_COLOR_NULL">灯颜色</option>
+                <option value="GUI_COLOR_NULL">无颜色 (None)</option>
+                <option value="GUI_COLOR_RED">红色 (Red)</option>
+                <option value="GUI_COLOR_WHITE">白色 (White)</option>
+                <option value="GUI_COLOR_YELLOW">黄色 (Yellow)</option>
+                <option value="GUI_COLOR_GREEN">绿色 (Green)</option>
+                <option value="GUI_COLOR_INDIGO">靛蓝色 (Indigo)</option>
+                <option value="GUI_COLOR_BLUE">蓝色 (Blue)</option>
+                <option value="GUI_COLOR_PURPLE">紫色 (Purple)</option>
+                <option value="GUI_COLOR_RSV00">保留颜色 00 (RSV00)</option>
+                <option value="GUI_COLOR_RSV01">保留颜色 01 (RSV01)</option>
+            </select>
+
+            <select class="form-select" id="inputGroupSelect03" name="mode">
+                <option selected value="GUI_MODE_NULL">灯模式</option>
+                <option value="GUI_MODE_OFF">关闭</option>
+                <option value="GUI_MODE_ON">开启</option>
+                <option value="GUI_MODE_FLASH">闪烁</option>
+            </select>
+
+            <button id="batchDeleteBtn" class="btn btn-primary">发送命令</button>
+        </div>
+
+    </form>
+
+
+{% endblock %}
+
+
+{% block page_content %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-0 d-flex justify-content-between align-items-center">
+            <h6 class="m-1 font-weight-bold text-primary">标签列表</h6>
+            <div id="responseMessage" class="alert-info d-none" role="alert"></div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable">
+                    <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"/></th>
+                        <th>序号</th>
+                        <th>类别</th>
+                        <th>编码</th>
+                        <th>内部ID</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for label in labels %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="row-checkbox" value="{{ label.internal_id }}"/>
+                            </td>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ label.get_type_display }}</td>
+                            <td>{{ label.code }}</td>
+                            <td>{{ label.internal_id }}</td>
+                            <td>"亮灯"</td>
+                            <td>
+                                <a class="btn btn-sm btn-primary"
+                                   href="{% url 'ptl:single_label_light_test' label.internal_id 'NET_CMD_LABLE_LIGHT_SET' 'GUI_MODE_ON' %}">亮灯</a>
+                                <a class="btn btn-sm btn-warning"
+                                   href="{% url 'ptl:single_label_light_test' label.internal_id 'NET_CMD_LABLE_LIGHT_SET' 'GUI_MODE_FLASH' %}">闪烁</a>
+                                <a class="btn btn-sm btn-dark"
+                                   href="{% url 'ptl:single_label_light_test' label.internal_id 'NET_CMD_LABLE_LIGHT_SET' 'GUI_MODE_OFF' %}">灭灯</a>
+                                <a class="btn btn-sm btn-info"
+                                   href="{% url 'ptl:single_label_light_test' label.internal_id 'NET_CMD_LABLE_INFO_GET' 'GUI_MODE_NULL' %}">获取状态</a>
+                                <a class="btn btn-sm btn-success"
+                                   href="{% url 'ptl:single_label_light_test' label.internal_id 'NET_CMD_LABLE_RST' 'GUI_MODE_NULL' %}">重启</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
+
+{% block script %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+
+            selectAllCheckbox.addEventListener('change', function () {
+                rowCheckboxes.forEach(function (checkbox) {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            });
+
+            batchDeleteBtn.addEventListener('click', function (event) {
+                const selectedIds = Array.from(rowCheckboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => checkbox.value);
+
+                if (selectedIds.length === 0) {
+                    alert('请选择至少一项进行操作！');
+                    return;
+                }
+
+                if (confirm(`确定给选中的 ${selectedIds.length} 个标签发送命令吗？`)) {
+                    event.preventDefault();  // 阻止默认提交行为
+                    console.log(document.getElementsByName('cmd')[0].value),
+
+                    // 使用 POST 请求发送数据
+                    fetch('{% url "ptl:group_label_light_test" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')  // 添加 CSRF token 头部
+                        },
+                        body: JSON.stringify({
+                            ids: selectedIds,
+                            cmd: document.querySelector('input[name="cmd"]:checked').value,
+                            color: document.getElementById('inputGroupSelect02').value,
+                            mode: document.getElementById('inputGroupSelect03').value
+                        })
+                    })
+                        .then(response => response.json())  // 假设后端返回 JSON 数据
+                        .then(data => {
+                            if (data.success) {
+                                location.reload(); // 刷新页面
+                            } else {
+                                alert('命令发送失败');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('请求失败:', error);
+                            alert('请求失败，请重试');
+                        });
+                }
+            });
+        });
+
+        // 获取 CSRF Token 函数
+        function getCookie(name) {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return '';
+        }
+
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 监听所有“亮灯”按钮的点击事件
+            document.querySelectorAll('.btn-sm').forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();  // 阻止默认跳转行为
+
+                    const url = this.getAttribute('href');  // 获取按钮的 href
+
+                    // 发起 AJAX 请求
+                    fetch(url, {
+                        method: 'GET',
+
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();  // 解析 JSON 数据
+                        })
+                        .then(data => {
+                            // 显示返回结果
+                            const responseMessage = document.getElementById('responseMessage');
+                            responseMessage.classList.remove('d-none');
+                            responseMessage.textContent = data.packet;  // 显示返回消息
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
+            });
+        });
+    </script>
+
+
+
+{% endblock %}
+
+

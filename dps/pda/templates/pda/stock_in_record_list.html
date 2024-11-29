@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+
+{% block page_content %}
+    <div class="card">
+        <div>
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>货品编码</th>
+                    <th>库位编码</th>
+                    <th>操作日期</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for record in records %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ record.goods_code }}</td>
+                        <td>{{ record.location_code }}</td>
+                        <td>{{ record.create_time | date:"Y-m-d H:i:s" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
+
+

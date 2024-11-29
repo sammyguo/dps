@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+
+{% block page_content %}
+    <div class="row ml-5">
+        <div class="col-md-6">
+            <form id="label_light_set_form" method="post">
+                <h3>对标签节点灯控制</h3>
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">操作类型 (node_type):</label><br>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-node" name="node_type"
+                               value="NET_LABLE_NODE">
+                        <label class="form-check-label" for="node-type-node">节点操作</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-section" name="node_type"
+                               value="NET_LABLE_SECTION">
+                        <label class="form-check-label" for="node-type-section">组操作</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-total" name="node_type"
+                               value="NET_LABLE_TOTAL">
+                        <label class="form-check-label" for="node-type-total">全部标签操作</label>
+                    </div>
+                </div>
+
+                <div id="node-formset1">
+                    {{ node_formset.management_form }}
+                    {% for form in node_formset %}
+                        {{ form.as_table }}
+                        <br>
+                    {% endfor %}
+                </div>
+
+                <div id="group1">
+                    <label for="total_color">组颜色:</label>
+                    <select id="total_color" name="total_color">
+                        <option value="GUI_COLOR_NULL">无颜色 (None)</option>
+                        <option value="GUI_COLOR_RED">红色 (Red)</option>
+                        <option value="GUI_COLOR_WHITE">白色 (White)</option>
+                        <option value="GUI_COLOR_YELLOW">黄色 (Yellow)</option>
+                        <option value="GUI_COLOR_GREEN">绿色 (Green)</option>
+                        <option value="GUI_COLOR_INDIGO">靛蓝色 (Indigo)</option>
+                        <option value="GUI_COLOR_BLUE">蓝色 (Blue)</option>
+                        <option value="GUI_COLOR_PURPLE">紫色 (Purple)</option>
+                        <option value="GUI_COLOR_RSV00">保留颜色 00 (RSV00)</option>
+                        <option value="GUI_COLOR_RSV01">保留颜色 01 (RSV01)</option>
+                    </select>
+
+                    <label for="total_mode">组模式:</label>
+                    <select id="total_mode" name="total_mode">
+                        <option value="GUI_MODE_NULL">无模式</option>
+                        <option value="GUI_MODE_OFF">关闭</option>
+                        <option value="GUI_MODE_ON">开启</option>
+                        <option value="GUI_MODE_FLASH">闪烁</option>
+                    </select>
+                </div>
+
+                <button id="label_light_set_button" type="submit">发送命令</button>
+
+            </form>
+
+            <form id="label_info_get_form" method="post">
+                <h3>主动获取标签信息</h3>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">操作类型 (node_type):</label><br>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-node2" name="node_type"
+                               value="NET_LABLE_NODE">
+                        <label class="form-check-label" for="node-type-node">节点操作</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-section2" name="node_type"
+                               value="NET_LABLE_SECTION">
+                        <label class="form-check-label" for="node-type-section">组操作</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-total2" name="node_type"
+                               value="NET_LABLE_TOTAL">
+                        <label class="form-check-label" for="node-type-total">全部标签操作</label>
+                    </div>
+                </div>
+
+
+                <div id="node-formset2">
+                    {{ node_formset.management_form }}
+                    {% for form in node_formset %}
+                        {{ form.node_id }}
+                        <br>
+                    {% endfor %}
+                </div>
+
+                <div id="group2">
+                    <p>全部标签操作</p>
+                </div>
+
+                <button id="label_info_get_button" type="submit">发送命令</button>
+            </form>
+
+
+
+
+        </div>
+        <div class="col-md-6 mt-5">
+            <form id="label_rst_form" method="post">
+                <h3>控制标签重启</h3>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">操作类型 (node_type):</label><br>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-node3" name="node_type"
+                               value="NET_LABLE_NODE">
+                        <label class="form-check-label" for="node-type-node">节点操作</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-section3" name="node_type"
+                               value="NET_LABLE_SECTION">
+                        <label class="form-check-label" for="node-type-section">组操作</label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="node-type-total3" name="node_type"
+                               value="NET_LABLE_TOTAL">
+                        <label class="form-check-label" for="node-type-total">全部标签操作</label>
+                    </div>
+                </div>
+                <div id="node-formset3">
+                    {{ node_formset.management_form }}
+                    {% for form in node_formset %}
+                        {{ form.node_id }}
+                        <br>
+                    {% endfor %}
+                </div>
+                <div id="group3">
+
+                </div>
+                <button id="label_rst_button" type="submit">发送命令</button>
+            </form>
+
+        <h3>ip地址配置</h3>
+
+            <form id="ip_addr_set_form" method="post">
+                {% csrf_token %}
+                <label for="ip_addr">NET_CMD_CTL_IP_ADDR_SET: 配置ip addr:</label>
+                <input type="text" id="ip_addr" name="ip_addr"/>
+                <button id="ip_addr_set_button" type="submit">发送命令</button>
+            </form>
+
+            <form id="ip_port_set_form" method="post">
+                {% csrf_token %}
+                <label for="ip_port">NET_CMD_CTL_IP_PORT_SET:配置ip port:</label>
+                <input type="text" id="ip_port" name="ip_port"></input>
+
+                <button id="ip_port_set_button" type="submit">发送命令</button>
+            </form>
+
+
+            <label>NET_CMD_CTL_IP_ADDR_GET:获取ip addr</label>
+            <button id="ip_addr_get_button" type="submit">发送命令</button>
+
+            <br>
+
+            <label>NET_CMD_CTL_IP_PORT_GET:获取ip 端口号</label>
+            <button id="ip_port_get_button" type="submit">发送命令</button>
+
+            <br>
+            <label>NET_CMD_CTL_RST: control系统复位</label>
+            <button id="sys_rst_button" type="submit">发送命令</button>
+
+            <br>
+            <label>NET_CMD_CTL_DEF: control系统恢复默认值</label>
+            <button id="sys_default_set_button"  type="submit">发送命令</button>
+
+
+        </div>
+    </div>
+
+    <div id="response_area" class="text-center mt-5">
+        <!-- 用于动态更新的内容 -->
+    </div>
+
+
+    {% load static %}
+    <script src="{% static 'js/picking.js' %}"></script>
+
+{% endblock %}

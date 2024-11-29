@@ -1,0 +1,119 @@
+{% extends 'pda_base.html' %}
+
+{% block content %}
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="input1">物料条码</label>
+        <input type="text" id="input1" name="goods_code" placeholder="扫描物料条码"/>
+        <button type="button" id="scanButton1" class="scan-btn" onclick="scanGoods()">
+            <i class="fa fa-qrcode"></i>
+        </button>
+    </div>
+    <div class="form-group d-none">
+        <label for="input1">库位编码</label>
+        <input type="text" id="input2" name="location_code" placeholder="扫描库位编码"/>
+        <button type="button" id="scanButton2" class="scan-btn" onclick="scanLocation()">
+            <i class="fa fa-qrcode"></i>
+        </button>
+    </div>
+
+    <div class="form-group">
+        <label for="scanRecords">下架记录</label>
+        <div id="scanRecords" class="form-control"
+             style="height: 200px; overflow-y: auto; background-color: #f8f9fa;white-space: pre-line; padding: 1px; border: 1px solid #ced4da;">
+            <!-- 下架扫描记录会动态添加到这里 -->
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="out_order_detail">工单明细</label>
+        <div id="out_order_detail" class="form-control"
+             style="height: 200px; overflow-y: auto; background-color: #f8f9fa;white-space: pre-line; padding: 1px; border: 1px solid #ced4da;">
+            {% for good,location in good_location.items %} <li>料号{{ good }}{{ location }}</li>{% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block function_buttons %}
+    <div type="button" class="btn btn-primary" onclick="fillRecords()">下架</div>
+{% endblock %}
+
+{% block script %}
+    <script>
+    console.log({{good_location|safe}})
+
+        function getRecommendedLocation(goodsCode) {
+            // 假设根据扫描的货品值获取推荐库位
+            // 这里模拟通过货品编码获取库位，实际中可以从后端获取
+            var locations = {{good_location|safe}};
+            return locations[goodsCode] || null; // 如果没有找到对应的库位，返回null
+        }
+
+        function scanGoods() {
+            // 从 good_location 中随机选择一个键
+            var good_locations = {{ good_location|safe }};
+            var random_good = Object.keys(good_locations)[Math.floor(Math.random() * Object.keys(good_locations).length)];
+
+            // 模拟扫描功能，扫描结果填充到输入框中
+            document.getElementById("input1").value = random_good; // 模拟扫描结果
+
+        }
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        function fillRecords() {
+
+            // 每扫描一件物料，就添加一条扫描记录到页面上
+            const goodNo = document.getElementById('input1').value;
+            const scanRecords = document.getElementById('scanRecords');
+
+            var good_locations = {{ good_location|safe }};
+            var recommendedLocation = getRecommendedLocation(goodNo);
+
+
+            // 如果 locationNo 和 recommendedLocation 都为空，弹出警告
+            if (!goodNo) {
+                alert("信息不全");
+                return;  // 终止函数执行
+            }
+
+            // 添加记录到页面
+            scanRecords.textContent += goodNo + " 从 " + recommendedLocation + "下架" + ".\n";
+
+            // 调用 API 接口保存下架记录
+            const recordData = {
+                goods_code: goodNo,
+                location_code: recommendedLocation,
+            };
+
+            fetch('/api/pda/stock_out_record/', { // 注意修改为你的实际 API 路径
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(recordData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("记录保存成功:", data);
+                    // 清空输入框内容
+                    document.getElementById('input1').value = '';
+                    document.getElementById('input2').value = '';
+                })
+                .catch(error => {
+                    console.error("保存记录时发生错误:", error);
+                    alert("保存记录失败，请重试！");
+                });
+
+        }
+
+    </script>
+
+{% endblock %}

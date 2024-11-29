@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+        <div class="input-group">
+            <input type="text" class="form-control bg-light border-0 small" placeholder="输入编码或名称搜索..."
+                   aria-label="Search" aria-describedby="basic-addon2">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button">
+                    <i class="fas fa-search fa-sm"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+
+{% block page_content %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-0 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">标签列表</h6>
+            <a href="{% url 'ptl:label_create' %}" class="btn btn-primary mb-3">新增标签</a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>类别</th>
+                        <th>编码</th>
+                        <th>内部ID</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for label in labels %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ label.get_type_display }}</td>
+                            <td>{{ label.code }}</td>
+                            <td>{{ label.internal_id }}</td>
+                            <td>
+                                <a href="{% url 'ptl:label_update' label.id %}"
+                                   class="btn btn-sm btn-warning">编辑
+                                </a>
+                                <a class="btn btn-sm btn-danger"
+                                   href="{% url 'ptl:label_delete' label.id %}"
+                                   data-toggle="modal"
+                                   data-target="#deleteLabelModal"
+                                   data-id="{{ label.id }}"
+                                   data-name="{{ label.get_type_display }}-{{ label.internal_id }}"
+                                   data-url="{% url 'ptl:label_delete' label.id %}"
+                                >删除
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div class="modal fade" id="deleteLabelModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">确认删除</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body"><p>确定要删除 <strong class="text-danger" id="modalLabelName"></strong> 吗？</p></div>
+                <div class="modal-footer">
+                    <form id="deleteForm" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">删除</button>
+                        <a href="{% url 'ptl:label_list' %}" class="btn btn-secondary" data-dismiss="modal">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block script %}
+
+    <script>
+        $(document).ready(function () {
+            $('#deleteLabelModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget); // 获取触发模态框的按钮
+                var labelName = button.data('name'); // 获取仓库名称
+                var deleteUrl = button.data('url');     // 获取删除 URL
+
+                // 动态设置模态框内容
+                var modal = $(this);
+                modal.find('#modalLabelName').text(labelName); // 更新名称
+                modal.find('#deleteForm').attr('action', deleteUrl);   // 更新表单 action
+            });
+        });
+
+    </script>
+
+{% endblock %}
+
+

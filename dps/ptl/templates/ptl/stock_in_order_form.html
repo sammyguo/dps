@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block topbar %}
+
+{% endblock %}
+
+{% block page_content %}
+    <div class="mb-4">
+        <form method="post">
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">{{ order_form.number.label_tag }}{{ order_form.number }}</div>
+                        <div class="col-md-3">{{ order_form.warehouse_code.label_tag }}{{ order_form.warehouse_code }}</div>
+                        <div class="col-md-3">{{ order_form.warehouse_name.label_tag }}{{ order_form.warehouse_name }}</div>
+                        <div class="col-md-3">{{ order_form.type.label_tag }}{{ order_form.type }}</div>
+                        <div class="col-md-3">{{ order_form.src_order.label_tag }}{{ order_form.src_order }}</div>
+                        <div class="col-md-3">{{ order_form.stock_staff.label_tag }}{{ order_form.stock_staff }}</div>
+                        <div class="col-md-6">{{ order_form.remark.label_tag }}{{ order_form.remark }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">货品明细</div>
+                <div id="goodsFormset">
+                    {{ goods_formset.management_form }}
+                    <table class="table table-bordered" id="dataTable">
+                        <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>货品编码</th>
+                            <th>货品名称</th>
+                            <th>计划数</th>
+                            <th>实际数</th>
+                            <th>批次号</th>
+                            <th>库位</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="goodsTableBody">
+                        {% for form in goods_formset %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ form.goods_code }}</td>
+                                <td>{{ form.goods_desc }}</td>
+                                <td>{{ form.plan_qty }}</td>
+                                <td>{{ form.actual_qty }}</td>
+                                <td>{{ form.batch }}</td>
+                                <td>{{ form.location_code }}</td>
+                                <td>{{ form.DELETE }}删除</td>
+                                <p style="display:none">{{ form.id }}</p>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+
+                        <!-- 空表单模板 -->
+                        <tbody id="emptyFormTemplate" style="display: none;">
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ goods_formset.empty_form.goods_code }}</td>
+                            <td>{{ goods_formset.empty_form.goods_desc }}</td>
+                            <td>{{ goods_formset.empty_form.plan_qty }}</td>
+                            <td>{{ goods_formset.empty_form.actual_qty }}</td>
+                            <td>{{ goods_formset.empty_form.batch }}</td>
+                            <td>{{ goods_formset.empty_form.location_code }}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-danger removeGoodsRow">删除</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" id="addGoodsForm" class="btn btn-sm btn-success col-md-1">新增货物</button>
+            </div>
+
+            <button type="submit" class="btn btn-primary">保存</button>
+        </form>
+
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const totalFormsInput = document.querySelector('#id_stockingoods_set-TOTAL_FORMS');
+            const addGoodsFormButton = document.getElementById('addGoodsForm');
+            const goodsTableBody = document.getElementById('goodsTableBody');
+            const emptyFormTemplate = document.getElementById('emptyFormTemplate').innerHTML;
+
+            // 动态新增表单行
+            addGoodsFormButton.addEventListener('click', function () {
+                const totalForms = parseInt(totalFormsInput.value, 10);
+                const newFormIndex = totalForms;
+
+                // 替换模板中的索引占位符
+                const newFormRow = emptyFormTemplate.replace(/__prefix__/g, newFormIndex);
+
+                // 插入新行
+                goodsTableBody.insertAdjacentHTML('beforeend', newFormRow);
+
+                // 更新管理表单中的总表单数
+                totalFormsInput.value = totalForms + 1;
+                // 为新行绑定删除功能（可选）
+            });
+
+            // 动态删除表单行
+            goodsTableBody.addEventListener('click', function (event) {
+                if (event.target.classList.contains('removeGoodsRow')) {
+                    const row = event.target.closest('tr');
+                    row.remove();
+
+                    // 更新管理表单中的总表单数
+                    const updatedTotalForms = goodsTableBody.children.length;
+                    totalFormsInput.value = updatedTotalForms;
+
+                    // 重新更新序号
+                    Array.from(goodsTableBody.children).forEach((row, index) => {
+                        row.querySelector('td:first-child').textContent = index + 1;
+                    });
+                }
+            });
+        });
+    </script>
+
+{% endblock %}

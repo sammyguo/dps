@@ -1,0 +1,61 @@
+{% extends 'pda_base.html' %}
+
+{% block top_title %}{{ toptitle }}{% endblock %}
+
+{% block content %}
+    <div>
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead>
+            <tr>
+                <th>来源单号</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in stockinorders %}
+                <tr>
+                    <td>{{ order.src_order }}</td>
+                    <td>
+                        <a href="{% url 'pda:stock_in' order.id %}"
+                           class="btn btn-sm btn-primary">开始上架
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead>
+            <tr>
+                <th>来源单号</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for order in stockoutorders %}
+                <tr>
+                    <td>{{ order.src_order }}</td>
+                    <td>
+                        <a href="{% url 'pda:stock_out' order.id%}"
+                           class="btn btn-sm btn-warning">开始下架
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% endblock %}
+
+{% block function_buttons %}
+
+{% endblock %}
+
+{% block script %}
+
+
+{% endblock %}

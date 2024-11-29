@@ -1,0 +1,127 @@
+{% extends 'pda_base.html' %}
+
+{% block top_title %}{{ toptitle }}{% endblock %}
+
+{% block content %}
+    <div class="form-group">
+        <label for="input1">货品条码</label>
+        <input type="text" id="input1" name="goods_code" placeholder="扫描货品条码"/>
+        <button type="button" id="scanButton1" class="scan-btn" onclick="scanGoods()">
+            <i class="fa fa-qrcode"></i>
+        </button>
+    </div>
+    <div class="form-group">
+        <label for="input1">上架库位</label>
+        <input type="text" id="input2" name="location_code" placeholder="扫描库位编码"/>
+        <button type="button" id="scanButton2" class="scan-btn" onclick="scanLocation()">
+            <i class="fa fa-qrcode"></i>
+        </button>
+    </div>
+    <div class="form-group">
+        <label for="recommend_location_code">推荐库位:</label>
+        <span id="recommend_location_code" class="col-8 text-danger">{{ location_code }}</span>
+    </div>
+
+    <div class="form-group">
+        <label for="scanRecords">上架记录</label>
+        <div id="scanRecords" class="form-control"
+             style="height: 350px; overflow-y: auto; background-color: #f8f9fa;white-space: pre-line; padding: 1px; border: 1px solid #ced4da;">
+            <!-- 扫描记录会动态添加到这里 -->
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block function_buttons %}
+    <div type="button" class="btn btn-primary" onclick="fillRecords()">上架</div>
+{% endblock %}
+
+{% block script %}
+    <script>
+
+        function getRecommendedLocation(goodsCode) {
+            // 假设根据扫描的货品值获取推荐库位
+            // 这里模拟通过货品编码获取库位，实际中可以从后端获取
+            var locations = {{good_location|safe}};
+            return locations[goodsCode] || null; // 如果没有找到对应的库位，返回null
+        }
+
+        function scanGoods() {
+            // 从 good_location 中随机选择一个键
+            var good_locations = {{ good_location|safe }};
+            var random_good = Object.keys(good_locations)[Math.floor(Math.random() * Object.keys(good_locations).length)];
+
+            console.log(random_good);
+
+            // 模拟扫描功能，扫描结果填充到输入框中
+            document.getElementById("input1").value = random_good; // 模拟扫描结果
+
+            // 模拟推荐库位功能
+            const recommend_location_code = document.getElementById("recommend_location_code");
+            // 假设根据扫描的货品值更新推荐库位
+            recommend_location_code.textContent = getRecommendedLocation(random_good);
+        }
+
+        function scanLocation() {
+            // 模拟扫描功能，扫描结果填充到输入框中
+            var good_locations = {{ good_location|safe }};
+            const random_good = Object.keys(good_locations)[Math.floor(Math.random() * Object.keys(good_locations).length)];
+            // 获取随机货品对应的库位
+            document.getElementById('input2').value = good_locations[random_good]; // 模拟扫描结果
+        }
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        function fillRecords() {
+
+            // 每扫描一组货品和库位，就添加一条扫描记录到页面上
+            const goodNo = document.getElementById('input1').value;
+            const locationNo = document.getElementById('input2').value;
+            const recommendedLocation = document.getElementById('recommend_location_code').textContent;
+            const scanRecords = document.getElementById('scanRecords');
+            let finalLocation = locationNo || recommendedLocation;
+
+            // 如果 locationNo 和 recommendedLocation 都为空，弹出警告
+            if (!goodNo || !finalLocation) {
+                alert("信息不全");
+                return;  // 终止函数执行
+            }
+
+            // 添加记录到页面
+            scanRecords.textContent += goodNo + " 上架到 " + finalLocation + ".\n";
+
+            // 调用 API 接口保存上架记录
+            const recordData = {
+                goods_code: goodNo,
+                location_code: finalLocation
+            };
+
+            fetch('/api/pda/good_location_record/', { // 注意修改为你的实际 API 路径
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(recordData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("记录保存成功:", data);
+                    // 清空输入框内容
+                    document.getElementById('input1').value = '';
+                    document.getElementById('input2').value = '';
+                })
+                .catch(error => {
+                    console.error("保存记录时发生错误:", error);
+                    alert("保存记录失败，请重试！");
+                });
+            //document.getElementById('recommend_location_code').textContent = "";
+        }
+
+    </script>
+
+{% endblock %}
